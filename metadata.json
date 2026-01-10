@@ -1,0 +1,5 @@
+{
+  "name": "机组预排班",
+  "description": "A comprehensive crew pre-scheduling and manpower analysis system for airlines, featuring strategy management, automated task generation, Gantt-based result visualization, and real-time manpower gap monitoring.",
+  "requestFramePermissions": []
+}
