@@ -6,6 +6,7 @@ import { RuleCard } from './StrategyPage';
 const ResultsPage: React.FC = () => {
   const [activeMonth, setActiveMonth] = useState(8);
   const [showAdjustmentModal, setShowAdjustmentModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -20,6 +21,12 @@ const ResultsPage: React.FC = () => {
     }, 2000);
   };
 
+  const handleFinalConfirm = () => {
+    // Logic for final submission
+    setShowConfirmModal(false);
+    alert('计划已确认并提交反馈至航网系统');
+  };
+
   const crewData = [
     { name: "张伟", rank: "高级机长", code: "CK-I", base: "长沙", fleet: "A321", hours: "88.5" },
     { name: "李明", rank: "B类机长", code: "CP-B", base: "昆明", fleet: "A320", hours: "86.2" },
@@ -28,6 +35,14 @@ const ResultsPage: React.FC = () => {
     { name: "刘杰", rank: "B类机长", code: "CP-B", base: "无锡", fleet: "A320", hours: "82.4" },
     { name: "孙亮", rank: "机长", code: "CP-A", base: "长沙", fleet: "A321", hours: "79.1" },
     { name: "周强", rank: "副驾驶", code: "FO-I", base: "昆明", fleet: "A320", hours: "92.3" },
+  ];
+
+  const rankManpowerData = [
+    { rank: "高级机长以上", values: [0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0], total: 4 },
+    { rank: "B类机长", values: [1, 1, 3, 0, 4, 1, 0, 0, 0, 0, 0, 0], total: 10 },
+    { rank: "A类机长", values: [1, 1, 3, 0, 4, 1, 0, 0, 0, 0, 0, 0], total: 10 },
+    { rank: "F3以上副驾驶", values: [0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0], total: 4 },
+    { rank: "储备人员", values: [0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0], total: 4 },
   ];
 
   const getDayTasks = (idx: number, day: number) => {
@@ -74,7 +89,7 @@ const ResultsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Re-designed Top Header with Metrics Cards */}
+      {/* Top Header with Metrics Cards */}
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-4 gap-6">
           <HeaderMetricCard 
@@ -135,8 +150,11 @@ const ResultsPage: React.FC = () => {
                 <button className="px-4 py-1.5 bg-white text-blue-600 shadow-sm rounded-md text-xs font-bold">测算结果一览</button>
                 <button className="px-4 py-1.5 text-slate-500 hover:text-slate-800 text-xs font-bold">人力缺口地图</button>
              </div>
-             <button className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold shadow-lg hover:bg-blue-700">
-               确认并回传航网系统
+             <button 
+               onClick={() => setShowConfirmModal(true)}
+               className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold shadow-lg hover:bg-blue-700"
+             >
+               确认计划
              </button>
           </div>
         </div>
@@ -262,6 +280,40 @@ const ResultsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* New Rank Manpower Requirement Table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-8">
+        <div className="p-6 border-b border-slate-100 flex items-center gap-2 bg-white">
+          <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
+          <h3 className="font-bold text-slate-800 tracking-tight">各职级人力需求/变动明细</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-[11px] text-center border-collapse">
+            <thead className="bg-slate-50 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100">
+              <tr>
+                <th className="px-6 py-4 text-left font-bold text-slate-600 w-48 sticky left-0 bg-slate-50 z-10">职级</th>
+                {months.map(m => <th key={m} className="px-2 py-4 font-bold">{m}月</th>)}
+                <th className="px-6 py-4 font-bold border-l border-slate-100">合计</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50 text-slate-400">
+              {rankManpowerData.map((row, idx) => (
+                <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4 text-left font-bold text-slate-800 sticky left-0 bg-white group-hover:bg-slate-50/50 z-10 border-r border-slate-50">{row.rank}</td>
+                  {row.values.map((v, i) => (
+                    <td key={i} className={`px-2 py-4 font-bold ${v > 0 ? 'text-indigo-600' : 'text-slate-200 opacity-60'}`}>
+                      {v}
+                    </td>
+                  ))}
+                  <td className="px-6 py-4 font-black text-indigo-700 bg-indigo-50/30 border-l border-slate-100">
+                    {row.total}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Adjustment Modal */}
       {showAdjustmentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -309,6 +361,41 @@ const ResultsPage: React.FC = () => {
             <div className="px-8 py-6 bg-white border-t flex justify-end gap-3 shadow-inner">
               <button onClick={() => setShowAdjustmentModal(false)} className="px-6 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-lg">放弃本次修改</button>
               <button onClick={handleRecalculate} className="px-10 py-2.5 bg-orange-600 text-white rounded-lg text-sm font-bold shadow-lg hover:bg-orange-700 transition-all">应用配置并重新触发引擎计算</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Feedback Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-bold text-slate-800">确认计划并提交反馈</h3>
+              <button onClick={() => setShowConfirmModal(false)} className="text-slate-400 hover:text-slate-600"><i className="fa-solid fa-xmark"></i></button>
+            </div>
+            <div className="p-6 space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">结果反馈类型</label>
+                <select className="w-full px-4 py-2 border border-slate-200 rounded-xl bg-white outline-none text-sm focus:ring-2 focus:ring-blue-500">
+                  <option>完全符合年度保障要求</option>
+                  <option>基本符合，部分月份需微调</option>
+                  <option>存在显著冲突，需重新编排航网</option>
+                  <option>其他</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">反馈详细说明</label>
+                <textarea 
+                  rows={4}
+                  placeholder="请输入您的反馈意见或需要航网部门注意的事项..."
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
+                ></textarea>
+              </div>
+            </div>
+            <div className="px-6 py-5 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+              <button onClick={() => setShowConfirmModal(false)} className="px-5 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-white transition-colors">取消</button>
+              <button onClick={handleFinalConfirm} className="px-8 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold shadow-lg hover:bg-blue-700 transition-all">确认提交</button>
             </div>
           </div>
         </div>
