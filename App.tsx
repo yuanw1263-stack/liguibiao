@@ -9,15 +9,15 @@ import ResultsPage from './components/ResultsPage';
 import AnalysisPage from './components/AnalysisPage';
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<Page>(Page.STRATEGY);
+  const [currentPage, setCurrentPage] = useState<Page>(Page.HOME);
 
   const renderPage = () => {
     switch (currentPage) {
       case Page.STRATEGY: return <StrategyPage />;
-      case Page.TASKS: return <TasksPage onNavigateToResults={() => setCurrentPage(Page.RESULTS)} />;
+      case Page.PILOT_PRE_SCHEDULE: return <TasksPage onNavigateToResults={() => setCurrentPage(Page.RESULTS)} />;
       case Page.RESULTS: return <ResultsPage />;
-      case Page.ANALYSIS: return <AnalysisPage />;
-      default: return <StrategyPage />;
+      case Page.HOME: return <AnalysisPage onNavigate={setCurrentPage} />;
+      default: return <AnalysisPage onNavigate={setCurrentPage} />;
     }
   };
 

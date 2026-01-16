@@ -10,10 +10,10 @@ const Header: React.FC<HeaderProps> = ({ activePage }) => {
   const getPageTitle = (page: Page) => {
     switch (page) {
       case Page.STRATEGY: return '组环策略管理';
-      case Page.TASKS: return '预排班测算任务';
+      case Page.PILOT_PRE_SCHEDULE: return '飞行员预排班';
       case Page.RESULTS: return '预排班甘特图预览';
-      case Page.ANALYSIS: return '人力资源效能监控';
-      default: return '仪表盘';
+      case Page.HOME: return '仪表盘与监控';
+      default: return '首页';
     }
   };
 

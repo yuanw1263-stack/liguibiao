@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Page } from '../types';
 
 interface SidebarProps {
@@ -8,12 +8,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ activePage, onPageChange }) => {
-  const navItems = [
-    { id: Page.ANALYSIS, icon: 'fa-chart-pie', label: '效能与监控' },
-    { id: Page.TASKS, icon: 'fa-list-check', label: '预排班分析' },
-    { id: Page.RESULTS, icon: 'fa-chart-bar', label: '预排班结果' },
-    { id: Page.STRATEGY, icon: 'fa-gear', label: '策略管理' },
-  ];
+  const [isPreScheduleOpen, setIsPreScheduleOpen] = useState(true);
 
   return (
     <aside className="w-64 bg-slate-900 text-slate-400 flex flex-col flex-shrink-0 z-20">
@@ -26,22 +21,68 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onPageChange }) => {
           <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-widest">AeroCrew Scheduler</p>
         </div>
       </div>
-      <nav className="p-4 space-y-1">
+      <nav className="p-4 space-y-1 overflow-y-auto flex-1">
         <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-4 px-2">业务流程</div>
-        {navItems.map((item) => (
+        
+        {/* 首页 */}
+        <button
+          onClick={() => onPageChange(Page.HOME)}
+          className={`w-full flex items-center px-4 py-3 rounded-lg transition-all mb-1 ${
+            activePage === Page.HOME 
+            ? 'bg-blue-600/10 text-blue-400 border-r-4 border-blue-500' 
+            : 'hover:bg-slate-800 hover:text-white'
+          }`}
+        >
+          <i className="fa-solid fa-chart-pie w-5 mr-3"></i>
+          <span className="font-medium text-sm">首页</span>
+        </button>
+
+        {/* 飞行员预排班 (Parent) */}
+        <div>
           <button
-            key={item.id}
-            onClick={() => onPageChange(item.id)}
+            onClick={() => {
+              setIsPreScheduleOpen(!isPreScheduleOpen);
+              onPageChange(Page.PILOT_PRE_SCHEDULE);
+            }}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-all ${
-              activePage === item.id 
+              activePage === Page.PILOT_PRE_SCHEDULE 
               ? 'bg-blue-600/10 text-blue-400 border-r-4 border-blue-500' 
               : 'hover:bg-slate-800 hover:text-white'
             }`}
           >
-            <i className={`fa-solid ${item.icon} w-5 mr-3`}></i>
-            <span className="font-medium text-sm">{item.label}</span>
+            <i className="fa-solid fa-list-check w-5 mr-3"></i>
+            <span className="font-medium text-sm flex-1 text-left">飞行员预排班</span>
+            <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${isPreScheduleOpen ? '' : '-rotate-90'}`}></i>
           </button>
-        ))}
+          
+          {isPreScheduleOpen && (
+            <div className="ml-9 mt-1 space-y-1">
+              <button
+                onClick={() => onPageChange(Page.RESULTS)}
+                className={`w-full flex items-center px-4 py-2 rounded-lg transition-all text-sm ${
+                  activePage === Page.RESULTS 
+                  ? 'text-blue-400 font-bold' 
+                  : 'text-slate-500 hover:text-white'
+                }`}
+              >
+                预排班结果
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 策略管理 */}
+        <button
+          onClick={() => onPageChange(Page.STRATEGY)}
+          className={`w-full flex items-center px-4 py-3 rounded-lg transition-all mt-1 ${
+            activePage === Page.STRATEGY 
+            ? 'bg-blue-600/10 text-blue-400 border-r-4 border-blue-500' 
+            : 'hover:bg-slate-800 hover:text-white'
+          }`}
+        >
+          <i className="fa-solid fa-gear w-5 mr-3"></i>
+          <span className="font-medium text-sm">策略管理</span>
+        </button>
       </nav>
       <div className="mt-auto p-4 border-t border-slate-800">
         <div className="bg-slate-800/50 rounded-lg p-3">

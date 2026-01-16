@@ -1,28 +1,58 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { MANPOWER_DATA, INITIAL_RULES, WEIGHTS } from '../constants';
 import { RuleCard } from './StrategyPage';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+
+const CALC_STEPS = [
+  { id: 1, label: "预排班触发", detail: "初始化分布式计算引擎..." },
+  { id: 2, label: "信息准备", detail: "同步航网计划与人员资质库..." },
+  { id: 3, label: "任务预排", detail: "航班/训练/请假/公务任务综合编排..." },
+  { id: 4, label: "人员评估", detail: "执行招聘与晋升人力缺口分析..." },
+  { id: 5, label: "结果输出", detail: "生成排班视图与汇总明细表..." }
+];
 
 const ResultsPage: React.FC = () => {
   const [activeMonth, setActiveMonth] = useState(8);
   const [showAdjustmentModal, setShowAdjustmentModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [calcStep, setCalcStep] = useState(0);
+  const [selectedVersion, setSelectedVersion] = useState('自动测算版本1');
+  const [newVersionName, setNewVersionName] = useState('');
+
+  const versions = [
+    '自动测算版本1',
+    '调整长沙-昆明航班版本2',
+    '昆明无锡连线版本3'
+  ];
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
   const daysInMonth = useMemo(() => new Date(2026, activeMonth, 0).getDate(), [activeMonth]);
   const monthDays = useMemo(() => Array.from({ length: daysInMonth }, (_, i) => i + 1), [daysInMonth]);
 
-  const handleRecalculate = () => {
+  // 模拟计算步骤
+  const handleRecalculate = async () => {
     setIsCalculating(true);
     setShowAdjustmentModal(false);
+    
+    for (let i = 1; i <= CALC_STEPS.length; i++) {
+      setCalcStep(i);
+      await new Promise(resolve => setTimeout(resolve, 800)); // 每个步骤模拟耗时
+    }
+    
     setTimeout(() => {
       setIsCalculating(false);
-    }, 2000);
+      setCalcStep(0);
+      // 模拟添加新版本到下拉框（演示用）
+      if (newVersionName) {
+        setSelectedVersion(newVersionName);
+        setNewVersionName('');
+      }
+    }, 500);
   };
 
   const handleFinalConfirm = () => {
-    // Logic for final submission
     setShowConfirmModal(false);
     alert('计划已确认并提交反馈至航网系统');
   };
@@ -43,6 +73,21 @@ const ResultsPage: React.FC = () => {
     { rank: "A类机长", values: [1, 1, 3, 0, 4, 1, 0, 0, 0, 0, 0, 0], total: 10 },
     { rank: "F3以上副驾驶", values: [0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0], total: 4 },
     { rank: "储备人员", values: [0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0], total: 4 },
+  ];
+
+  const trainingData = [
+    { name: '1月', trainee: 120, trainer: 45 },
+    { name: '2月', trainee: 150, trainer: 50 },
+    { name: '3月', trainee: 180, trainer: 60 },
+    { name: '4月', trainee: 140, trainer: 40 },
+    { name: '5月', trainee: 160, trainer: 55 },
+    { name: '6月', trainee: 200, trainer: 70 },
+    { name: '7月', trainee: 220, trainer: 75 },
+    { name: '8月', trainee: 210, trainer: 65 },
+    { name: '9月', trainee: 190, trainer: 60 },
+    { name: '10月', trainee: 170, trainer: 55 },
+    { name: '11月', trainee: 150, trainer: 45 },
+    { name: '12月', trainee: 130, trainer: 40 },
   ];
 
   const getDayTasks = (idx: number, day: number) => {
@@ -82,10 +127,49 @@ const ResultsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-full animate-in fade-in duration-300 relative pb-12">
+      {/* Enhanced Step-by-Step Calculation Overlay */}
       {isCalculating && (
-        <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-lg font-bold text-slate-800">正在重新测算...</p>
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
+          <div className="bg-white p-10 rounded-3xl shadow-2xl border border-white/20 w-full max-w-lg flex flex-col items-center">
+            {/* Spinning Loader & Progress Circle */}
+            <div className="relative mb-10">
+               <div className="w-24 h-24 border-4 border-slate-100 rounded-full"></div>
+               <div className="absolute inset-0 w-24 h-24 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+               <div className="absolute inset-0 flex items-center justify-center font-black text-xl text-blue-600">
+                 {Math.round((calcStep / CALC_STEPS.length) * 100)}%
+               </div>
+            </div>
+            
+            <h3 className="text-xl font-bold text-slate-800 mb-8">预排班引擎深度计算中</h3>
+            
+            {/* Step Pipeline Display */}
+            <div className="w-full space-y-4">
+              {CALC_STEPS.map((step) => {
+                const isActive = calcStep === step.id;
+                const isDone = calcStep > step.id;
+                return (
+                  <div key={step.id} className={`flex items-start gap-4 transition-all duration-300 ${isActive ? 'scale-105' : isDone ? 'opacity-100' : 'opacity-30 grayscale'}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 transition-colors ${isDone ? 'bg-emerald-500 text-white' : isActive ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                      {isDone ? <i className="fa-solid fa-check"></i> : step.id}
+                    </div>
+                    <div className="flex-1">
+                      <p className={`text-sm font-bold ${isActive ? 'text-blue-600' : 'text-slate-700'}`}>{step.label}</p>
+                      {isActive && <p className="text-[10px] text-blue-400 animate-pulse mt-0.5">{step.detail}</p>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Overall Progress Bar */}
+            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-10">
+              <div 
+                className="h-full bg-blue-600 transition-all duration-500 ease-out" 
+                style={{ width: `${(calcStep / CALC_STEPS.length) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+          <p className="mt-6 text-white/80 text-sm font-medium tracking-widest animate-pulse">正在处理海量规章与人力配额关系...</p>
         </div>
       )}
 
@@ -93,7 +177,7 @@ const ResultsPage: React.FC = () => {
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-4 gap-6">
           <HeaderMetricCard 
-            title="排班负荷指标" 
+            title="月飞行小时" 
             value="78.25" unit="h" 
             sub="月均小时" 
             secondaryValue="2.57h" secondarySub="日均小时"
@@ -112,6 +196,14 @@ const ResultsPage: React.FC = () => {
               <div className="w-2 h-2 rounded-full bg-blue-500"></div>
             </div>
             <div className="grid grid-cols-2 gap-y-2 text-[10px] font-bold">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
+                <span className="text-slate-500">飞行员总人数:</span> <span className="text-slate-800 font-black">130</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                <span className="text-slate-500">人力折损:</span> <span className="text-slate-800 font-black">5.5</span>
+              </div>
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                 <span className="text-slate-500">航班运行:</span> <span className="text-slate-800 font-black">100人</span>
@@ -144,15 +236,27 @@ const ResultsPage: React.FC = () => {
              <button onClick={() => setShowAdjustmentModal(true)} className="px-4 py-2 border-2 border-orange-200 bg-orange-50 text-orange-700 rounded-lg text-sm font-bold hover:bg-orange-100 flex items-center gap-2">
                <i className="fa-solid fa-wand-magic-sparkles"></i> 调整策略并计算
              </button>
+             
+             <div className="flex items-center gap-2 ml-4 pl-4 border-l border-slate-200">
+               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">方案版本:</span>
+               <div className="relative group">
+                 <select 
+                   value={selectedVersion}
+                   onChange={(e) => setSelectedVersion(e.target.value)}
+                   className="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 pr-10 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer min-w-[200px]"
+                 >
+                   {versions.map(v => (
+                     <option key={v} value={v}>{v}</option>
+                   ))}
+                 </select>
+                 <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+               </div>
+             </div>
           </div>
           <div className="flex gap-4">
-             <div className="flex bg-slate-100 p-1 rounded-lg">
-                <button className="px-4 py-1.5 bg-white text-blue-600 shadow-sm rounded-md text-xs font-bold">测算结果一览</button>
-                <button className="px-4 py-1.5 text-slate-500 hover:text-slate-800 text-xs font-bold">人力缺口地图</button>
-             </div>
              <button 
                onClick={() => setShowConfirmModal(true)}
-               className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold shadow-lg hover:bg-blue-700"
+               className="px-8 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-bold shadow-lg hover:bg-blue-700 transition-all active:scale-95"
              >
                确认计划
              </button>
@@ -187,7 +291,7 @@ const ResultsPage: React.FC = () => {
         <LegendItem color="bg-emerald-500" label="个人请假" />
       </div>
 
-      {/* Re-structured Gantt Container: Sidebar + Scrollable Grid */}
+      {/* Gantt Container */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex overflow-hidden">
         {/* Left Frozen Sidebar */}
         <div className="flex-none w-[280px] flex flex-col border-r border-slate-200 bg-white z-20 shadow-[4px_0_12px_rgba(0,0,0,0.05)]">
@@ -244,35 +348,61 @@ const ResultsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Manpower Detail Table */}
+      {/* Yearly Capability Detail Table (補全的表格) */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-8">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <h3 className="font-bold text-slate-800 tracking-tight">2026年度飞行人力保障明细表 (1-12月)</h3>
+        <div className="p-6 border-b border-slate-100 flex items-center gap-2">
+          <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
+          <h3 className="font-bold text-slate-800 tracking-tight uppercase">2026年度飞行人力保障明细表 (1-12月)</h3>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-[10px] text-center border-collapse">
-            <thead className="bg-white text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+          <table className="w-full text-[11px] text-center border-collapse">
+            <thead className="bg-slate-50 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100">
               <tr>
-                <th className="px-6 py-4 text-left font-black text-slate-800 w-44 sticky left-0 bg-white z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">年度指标</th>
-                {MANPOWER_DATA.map(d => <th key={d.month} className="px-2 py-4 min-w-[70px]">{d.month}</th>)}
+                <th className="px-6 py-4 text-left font-bold text-slate-600 w-40 sticky left-0 bg-slate-50 z-10">年度指标</th>
+                {months.map(m => <th key={m} className="px-2 py-4 font-bold">{m}月</th>)}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50 text-slate-600 font-medium">
-              <DataTableRow label="机长可用总数" values={MANPOWER_DATA.map(d => d.captains)} highlightIndex={[5, 11]} />
-              <DataTableRow label="副驾驶可用总数" values={MANPOWER_DATA.map(d => d.fo)} />
-              <DataTableRow label="训练/考试损耗" values={MANPOWER_DATA.map(d => d.trainingAttrition)} />
-              <DataTableRow label="公务/会议占用" values={MANPOWER_DATA.map(d => d.officialBusiness)} />
-              <DataTableRow label="各类休假损耗" values={MANPOWER_DATA.map(d => d.leaveAttrition)} />
-              <tr className="bg-slate-50/50">
-                <td className="px-6 py-4 text-left font-black text-slate-800 border-r border-slate-100 sticky left-0 bg-slate-50 z-10 shadow-sm">可保障总小时</td>
-                {MANPOWER_DATA.map(d => <td key={d.month} className="px-2 py-4 font-bold text-blue-600">{d.totalAvailableHours}</td>)}
+            <tbody className="divide-y divide-slate-50 text-slate-500">
+              <tr className="hover:bg-slate-50/50 transition-colors">
+                <td className="px-6 py-4 text-left font-bold text-slate-700 sticky left-0 bg-white z-10 border-r border-slate-50">机长可用总数</td>
+                {MANPOWER_DATA.map((d, i) => (
+                  <td key={i} className={`px-2 py-4 ${i === 5 || i === 11 ? 'text-rose-600 font-bold' : ''}`}>{d.captains}</td>
+                ))}
               </tr>
-              <tr className="bg-blue-50/30">
-                <td className="px-6 py-4 text-left font-black text-slate-900 border-r border-slate-100 sticky left-0 bg-blue-50 z-10 shadow-sm">人力裕度 (Margin)</td>
-                {MANPOWER_DATA.map((d, idx) => (
-                  <td key={d.month} className={`px-2 py-4 font-black ${d.marginHours < 200 ? 'text-rose-600 bg-rose-50' : 'text-slate-900'}`}>
-                    {d.marginHours}
-                  </td>
+              <tr className="hover:bg-slate-50/50 transition-colors">
+                <td className="px-6 py-4 text-left font-bold text-slate-700 sticky left-0 bg-white z-10 border-r border-slate-50">副驾驶可用总数</td>
+                {MANPOWER_DATA.map((d, i) => (
+                  <td key={i} className="px-2 py-4">{d.fo}</td>
+                ))}
+              </tr>
+              <tr className="hover:bg-slate-50/50 transition-colors">
+                <td className="px-6 py-4 text-left font-bold text-slate-700 sticky left-0 bg-white z-10 border-r border-slate-50">训练/考试损耗</td>
+                {MANPOWER_DATA.map((d, i) => (
+                  <td key={i} className="px-2 py-4">{d.trainingAttrition}</td>
+                ))}
+              </tr>
+              <tr className="hover:bg-slate-50/50 transition-colors">
+                <td className="px-6 py-4 text-left font-bold text-slate-700 sticky left-0 bg-white z-10 border-r border-slate-50">公务/会议占用</td>
+                {MANPOWER_DATA.map((d, i) => (
+                  <td key={i} className="px-2 py-4">{d.officialBusiness}</td>
+                ))}
+              </tr>
+              <tr className="hover:bg-slate-50/50 transition-colors">
+                <td className="px-6 py-4 text-left font-bold text-slate-700 sticky left-0 bg-white z-10 border-r border-slate-50">各类休假损耗</td>
+                {MANPOWER_DATA.map((d, i) => (
+                  <td key={i} className="px-2 py-4">{d.leaveAttrition}</td>
+                ))}
+              </tr>
+              <tr className="hover:bg-slate-50/50 transition-colors">
+                <td className="px-6 py-4 text-left font-bold text-slate-800 sticky left-0 bg-white z-10 border-r border-slate-50">可保障总小时</td>
+                {MANPOWER_DATA.map((d, i) => (
+                  <td key={i} className="px-2 py-4 font-black text-blue-600">{d.totalAvailableHours}</td>
+                ))}
+              </tr>
+              <tr className="hover:bg-slate-50/50 transition-colors">
+                <td className="px-6 py-4 text-left font-bold text-slate-800 sticky left-0 bg-white z-10 border-r border-slate-50">人力裕度 (Margin)</td>
+                {MANPOWER_DATA.map((d, i) => (
+                  <td key={i} className={`px-2 py-4 font-black ${i === 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-800'}`}>{d.marginHours}</td>
                 ))}
               </tr>
             </tbody>
@@ -280,11 +410,11 @@ const ResultsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* New Rank Manpower Requirement Table */}
+      {/* Rank Manpower Requirement Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-8">
         <div className="p-6 border-b border-slate-100 flex items-center gap-2 bg-white">
           <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
-          <h3 className="font-bold text-slate-800 tracking-tight">各职级人力需求/变动明细</h3>
+          <h3 className="font-bold text-slate-800 tracking-tight">各职级人力需求</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-[11px] text-center border-collapse">
@@ -311,6 +441,57 @@ const ResultsPage: React.FC = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Monthly Training Statistics */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-8 mt-8">
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
+          <h3 className="font-bold text-slate-800 tracking-tight">月度训练统计</h3>
+        </div>
+
+        <div className="space-y-4">
+          <h4 className="text-center text-xl font-bold text-slate-600">飞行训练人次</h4>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={trainingData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" />
+                <YAxis domain={[0, 500]} />
+                <Tooltip />
+                <Legend iconType="rect" verticalAlign="bottom" height={36}/>
+                <Bar dataKey="trainee" name="学员人次" stackId="a" fill="#3b82f6" barSize={30} />
+                <Bar dataKey="trainer" name="教员人次" stackId="a" fill="#f97316" barSize={30} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h4 className="font-bold text-slate-700 text-sm">各类型训练统计</h4>
+          <div className="overflow-hidden rounded-lg border border-slate-200">
+            <table className="w-full text-center text-xs">
+              <thead className="bg-slate-50 text-slate-400 font-bold">
+                <tr className="border-b border-slate-200">
+                  <th className="px-4 py-3 bg-slate-100/50 w-32">类型</th>
+                  <th className="px-4 py-3 border-l border-slate-200">复训</th>
+                  <th className="px-4 py-3 border-l border-slate-200">新雇员培训</th>
+                  <th className="px-4 py-3 border-l border-slate-200">晋升培训</th>
+                  <th className="px-4 py-3 border-l border-slate-200 bg-slate-100/30">总天数</th>
+                </tr>
+              </thead>
+              <tbody className="text-slate-600">
+                <tr>
+                  <td className="px-4 py-3 font-bold bg-slate-50/30 border-r border-slate-200">训练天数</td>
+                  <td className="px-4 py-3">275</td>
+                  <td className="px-4 py-3 border-l border-slate-200">31</td>
+                  <td className="px-4 py-3 border-l border-slate-200">72</td>
+                  <td className="px-4 py-3 border-l border-slate-200 font-bold bg-slate-50/20">235</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -358,9 +539,22 @@ const ResultsPage: React.FC = () => {
                 </div>
               </div>
             </div>
+            
+            {/* New Version Name Input Section */}
+            <div className="px-10 py-4 bg-white border-t border-slate-100">
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">本次测算的名称版本说明</label>
+              <input 
+                type="text" 
+                value={newVersionName}
+                onChange={(e) => setNewVersionName(e.target.value)}
+                placeholder="例如：调整长沙-昆明航班版本4" 
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300"
+              />
+            </div>
+
             <div className="px-8 py-6 bg-white border-t flex justify-end gap-3 shadow-inner">
-              <button onClick={() => setShowAdjustmentModal(false)} className="px-6 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-lg">放弃本次修改</button>
-              <button onClick={handleRecalculate} className="px-10 py-2.5 bg-orange-600 text-white rounded-lg text-sm font-bold shadow-lg hover:bg-orange-700 transition-all">应用配置并重新触发引擎计算</button>
+              <button onClick={() => setShowAdjustmentModal(false)} className="px-6 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-lg transition-colors">放弃本次修改</button>
+              <button onClick={handleRecalculate} className="px-10 py-2.5 bg-orange-600 text-white rounded-lg text-sm font-bold shadow-lg hover:bg-orange-700 transition-all active:scale-95">重新预排班</button>
             </div>
           </div>
         </div>
@@ -427,17 +621,6 @@ const LegendItem: React.FC<{ color: string, label: string }> = ({ color, label }
     <div className={`w-3 h-3 rounded-md ${color} shadow-sm`}></div>
     <span className="text-xs font-bold text-slate-600">{label}</span>
   </div>
-);
-
-const DataTableRow: React.FC<{ label: string, values: number[], highlightIndex?: number[] }> = ({ label, values, highlightIndex }) => (
-  <tr className="hover:bg-slate-50 transition-colors">
-    <td className="px-6 py-4 text-left font-bold text-slate-700 border-r border-slate-100 sticky left-0 bg-white group-hover:bg-slate-50 z-10 shadow-sm">{label}</td>
-    {values.map((v, i) => (
-      <td key={i} className={`px-2 py-4 ${highlightIndex?.includes(i) ? 'text-rose-600 font-bold' : ''}`}>
-        {v}
-      </td>
-    ))}
-  </tr>
 );
 
 export default ResultsPage;

@@ -1,7 +1,7 @@
 
 export enum Page {
-  ANALYSIS = 'analysis',
-  TASKS = 'tasks',
+  HOME = 'home',
+  PILOT_PRE_SCHEDULE = 'pilot_pre_schedule',
   RESULTS = 'results',
   STRATEGY = 'strategy'
 }
@@ -39,6 +39,10 @@ export interface ManpowerRecord {
   totalAvailableHours: number;
   requiredHours: number;
   marginHours: number;
+  // 新增用于首页图表的数据
+  captainAvailableHours?: number;
+  foAvailableHours?: number;
+  marketPlanHours?: number;
 }
 
 export interface Strategy {
