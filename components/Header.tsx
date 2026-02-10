@@ -9,10 +9,15 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ activePage }) => {
   const getPageTitle = (page: Page) => {
     switch (page) {
-      case Page.STRATEGY: return '组环策略管理';
-      case Page.PILOT_PRE_SCHEDULE: return '飞行员预排班';
-      case Page.RESULTS: return '预排班甘特图预览';
+      case Page.STRATEGY: return '人力分析策略';
+      case Page.PILOT_PRE_SCHEDULE: return '飞行员人力分析';
+      case Page.RESULTS: return '飞行员人力分析结果';
       case Page.HOME: return '仪表盘与监控';
+      case Page.HOLIDAY_RULES: return '假期计算规则配置';
+      case Page.CREW_AVAILABILITY: return '飞行实力特殊配置';
+      case Page.LEAVE_ACTUALS: return '假期实际执行明细';
+      case Page.PARENTAL_STATS: return '育儿及生育计划统计';
+      case Page.PARENTAL_MOBILE: return '机组端育儿申报模拟';
       default: return '首页';
     }
   };

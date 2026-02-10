@@ -3,7 +3,12 @@ export enum Page {
   HOME = 'home',
   PILOT_PRE_SCHEDULE = 'pilot_pre_schedule',
   RESULTS = 'results',
-  STRATEGY = 'strategy'
+  STRATEGY = 'strategy',
+  HOLIDAY_RULES = 'holiday_rules',
+  CREW_AVAILABILITY = 'crew_availability',
+  LEAVE_ACTUALS = 'leave_actuals',
+  PARENTAL_STATS = 'parental_stats',
+  PARENTAL_MOBILE = 'parental_mobile'
 }
 
 export type TaskType = '年度计划' | '季度计划' | '月度计划' | '春运加班' | '暑运加班';
@@ -39,7 +44,6 @@ export interface ManpowerRecord {
   totalAvailableHours: number;
   requiredHours: number;
   marginHours: number;
-  // 新增用于首页图表的数据
   captainAvailableHours?: number;
   foAvailableHours?: number;
   marketPlanHours?: number;
